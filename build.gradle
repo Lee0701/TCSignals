@@ -1,0 +1,58 @@
+plugins {
+    id 'java'
+    id 'com.github.johnrengelman.shadow' version '2.0.4'
+}
+
+group 'io.github.lee0701'
+version '0.1'
+
+sourceCompatibility = 1.8
+
+def mcversion = "1.13"
+def cbversion = "$mcversion-R0.1-SNAPSHOT"
+def bkcversion = "1.13-v1-SNAPSHOT"
+def tcversion = "1.13-v1-SNAPSHOT"
+
+repositories {
+    mavenCentral()
+    maven {
+        name 'spigot-repo'
+        url 'https://hub.spigotmc.org/nexus/content/groups/public/'
+    }
+    maven {
+        url 'https://ci.mg-dev.eu/plugin/repository/everything/'
+    }
+    maven {
+        url 'http://repo.aikar.co/nexus/content/groups/aikar/'
+    }
+}
+
+dependencies {
+    testCompile group: 'junit', name: 'junit', version: '4.12'
+    compileOnly "org.spigotmc:spigot-api:$cbversion"
+    compileOnly "com.bergerkiller.bukkit:BKCommonLib:$bkcversion"
+    compileOnly "com.bergerkiller.bukkit:TrainCarts:$tcversion"
+}
+
+shadowJar {
+    classifier = ''
+}
+
+artifacts {
+    archives jar
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = 'UTF-8'
+}
+
+import org.apache.tools.ant.filters.ReplaceTokens
+
+processResources {
+    from(sourceSets.main.resources.srcDirs) {
+
+        filteringCharset = 'UTF-8'
+
+        filter ReplaceTokens, tokens: [version: version]
+    }
+}

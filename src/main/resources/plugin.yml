@@ -1,0 +1,10 @@
+name: TCSignals
+version: @version@
+main: io.github.lee0701.tcsignals.TCSignalsPlugin
+author: Lee0701
+description: Train signals addon for TrainCarts.
+depend: [Train_Carts]
+commands:
+  trainsignal:
+    aliases: [ts]
+    description: "Train signals command."

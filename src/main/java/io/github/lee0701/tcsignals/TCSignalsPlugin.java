@@ -22,18 +22,18 @@ public final class TCSignalsPlugin extends JavaPlugin {
     private YamlConfiguration dataConfiguration;
 
     private void reload() {
-        dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
-        if(dataConfiguration.isList("signals")) dataConfiguration.getList("signals");
+//        dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
+//        if(dataConfiguration.isList("signals")) dataConfiguration.getList("signals");
         BlockSignal.repopulateAll();
     }
 
     private void save() {
-        try {
-            dataConfiguration.set("signals", BlockSignal.SIGNALS);
-            dataConfiguration.save(dataFile);
-        } catch(IOException ex) {
-            ex.printStackTrace();
-        }
+//        try {
+//            dataConfiguration.set("signals", BlockSignal.SIGNALS);
+//            dataConfiguration.save(dataFile);
+//        } catch(IOException ex) {
+//            ex.printStackTrace();
+//        }
     }
 
     @Override

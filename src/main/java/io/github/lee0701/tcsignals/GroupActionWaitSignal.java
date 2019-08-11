@@ -9,13 +9,14 @@ public class GroupActionWaitSignal extends GroupActionWaitForever {
     private final BlockSection waitingFor;
     private Double launchVelocity;
 
-    public GroupActionWaitSignal(BlockSection waitingFor) {
+    public GroupActionWaitSignal(BlockSection waitingFor, Double launchVelocity) {
         this.waitingFor = waitingFor;
+        if(launchVelocity != null) this.launchVelocity = launchVelocity;
     }
 
     @Override
     public void bind() {
-        this.launchVelocity = this.getGroup().getAverageForce();
+        if(this.launchVelocity == null) this.launchVelocity = this.getGroup().getAverageForce();
     }
 
     @Override
@@ -23,7 +24,7 @@ public class GroupActionWaitSignal extends GroupActionWaitForever {
         MinecartGroup group = waitingFor.getOccupyingGroup();
         if(group != null && group.isValid()) return super.update();
         else {
-            // The track is clear
+            // The track is clear, occupy the section and launch.
             this.waitingFor.setOccupyingGroup(getGroup());
             getGroup().head().getActions().addActionLaunch(2.0, launchVelocity);
             return true;

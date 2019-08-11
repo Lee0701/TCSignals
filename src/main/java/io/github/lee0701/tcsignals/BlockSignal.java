@@ -14,12 +14,20 @@ import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockSignal implements ConfigurationSerializable {
 
+    private static BlockFace[] DIRECTIONS = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH};
+
     public static List<BlockSignal> SIGNALS = new CopyOnWriteArrayList<>();
 
-    public static Optional<BlockSignal> of(Location signLocation, BlockFace facing) {
+    public static BlockSignal of(Location signLocation, BlockFace facing) {
         return SIGNALS.stream()
                 .filter(signal -> signal.signLocation.equals(signLocation) && signal.facing.equals(facing))
-                .findAny();
+                .findAny()
+                .orElseGet(() -> {
+                    BlockSignal newSignal = new BlockSignal(signLocation, facing);
+                    BlockSignal.SIGNALS.add(newSignal);
+                    newSignal.repopulate();
+                    return newSignal;
+                });
     }
 
     public static void repopulateAll() {
@@ -32,18 +40,17 @@ public class BlockSignal implements ConfigurationSerializable {
     // section starting with this sign.
     private BlockSection section;
 
-    private static BlockFace[] DIRECTIONS = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH};
-
     public BlockSignal(Location signLocation, BlockFace facing) {
         this.signLocation = signLocation;
         this.facing = facing;
     }
 
     public void repopulate() {
-        BlockSection.SECTIONS.remove(this.section);
-        this.section = new BlockSection();
-        this.section.getBeginSignals().add(this);
-        BlockSection.SECTIONS.add(this.section);
+        if(this.section == null) {
+            this.section = new BlockSection();
+            this.section.getBeginSignals().add(this);
+            BlockSection.SECTIONS.add(this.section);
+        }
 
         if(signLocation.getBlock().getType() != Material.SIGN
                 && signLocation.getBlock().getType() != Material.WALL_SIGN) {
@@ -54,9 +61,9 @@ public class BlockSignal implements ConfigurationSerializable {
         Block rails = RailSignCache.getRailsFromSign(signLocation.getBlock());
         if(rails == null) return;
 
-        repopulate(rails.getLocation(), this.facing.getOppositeFace());
+        BlockFace direction = this.facing.getOppositeFace();
 
-        System.out.println(this.getSignLocation() + ", " + this.getFacing());
+        repopulate(rails.getLocation().clone().add(direction.getModX(), direction.getModY(), direction.getModZ()), direction);
 
     }
 
@@ -66,21 +73,23 @@ public class BlockSignal implements ConfigurationSerializable {
             SignActionEvent event = new SignActionEvent(sign.signBlock);
             if(!event.isType(SignActionSignal.TYPES)) continue;
 
-            Optional<BlockSignal> ending = BlockSignal.of(sign.signBlock.getLocation(), currentDirection.getOppositeFace());
-            ending.ifPresent(endingSignal -> {
+            if(event.getFacing().equals(currentDirection.getOppositeFace())) {
+                BlockSignal endingSignal = BlockSignal.of(sign.signBlock.getLocation(), currentDirection.getOppositeFace());
                 section.getEndSignals().add(endingSignal);
-            });
+                return;
+            }
 
-            Optional<BlockSignal> starting = BlockSignal.of(sign.signBlock.getLocation(), currentDirection);
-            starting.ifPresent(startingSignal -> {
-                if(!section.getBeginSignals().contains(startingSignal)) {
-                    section.getBeginSignals().add(startingSignal);
+            if(event.getFacing().equals(currentDirection)) {
+                BlockSignal startingSignal = BlockSignal.of(sign.signBlock.getLocation(), currentDirection);
+                if(this.section != startingSignal.section) {
                     BlockSection.SECTIONS.remove(startingSignal.section);
                     startingSignal.section = this.section;
                 }
-            });
-
-            if(ending.isPresent() || starting.isPresent()) return;
+                if(!section.getBeginSignals().contains(startingSignal)) {
+                    section.getBeginSignals().add(startingSignal);
+                }
+                return;
+            }
 
         }
         for(BlockFace direction : DIRECTIONS) {

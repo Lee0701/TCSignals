@@ -1,14 +1,11 @@
 package io.github.lee0701.tcsignals;
 
 import com.bergerkiller.bukkit.common.utils.ParseUtil;
-import com.bergerkiller.bukkit.tc.Direction;
 import com.bergerkiller.bukkit.tc.Permission;
-import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 import com.bergerkiller.bukkit.tc.events.SignActionEvent;
 import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
 import com.bergerkiller.bukkit.tc.signactions.SignActionType;
-import org.bukkit.block.BlockFace;
 
 public class SignActionSignal extends SignAction {
 
@@ -21,19 +18,19 @@ public class SignActionSignal extends SignAction {
 
     @Override
     public void execute(SignActionEvent event) {
-        BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing()).orElseGet(() -> {
-            BlockSignal newSignal = new BlockSignal(event.getLocation(), event.getFacing());
-            BlockSignal.SIGNALS.add(newSignal);
-            newSignal.repopulate();
-            return newSignal;
-        });
+        BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing());
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
-            event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection()));
+            if(signal.getSection().getOccupyingGroup() != null) {
+                event.getGroup().getActions().clear();
+                event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection(), ParseUtil.parseDouble(event.getLine(3), event.getGroup().getAverageForce())));
+            } else {
+                signal.getSection().setOccupyingGroup(event.getGroup());
+            }
 
         } if(event.isAction(SignActionType.GROUP_LEAVE) && event.hasGroup()) {
-            BlockSection.SECTIONS.forEach(section -> {
-                if(section != signal.getSection() && section.getOccupyingGroup() == event.getGroup()) section.setOccupyingGroup(null);
-            });
+            BlockSection.SECTIONS.stream()
+                    .filter(section -> section != signal.getSection() && section.getOccupyingGroup() == event.getGroup())
+                    .forEach(section -> section.setOccupyingGroup(null));
         }
     }
 
@@ -41,9 +38,7 @@ public class SignActionSignal extends SignAction {
     public boolean build(SignChangeActionEvent event) {
         boolean result = handleBuild(event, Permission.BUILD_WAIT, "train signal", "create block sections by combining multiple signs");
         if(result) {
-            BlockSignal signal = new BlockSignal(event.getLocation(), event.getFacing());
-            BlockSignal.SIGNALS.add(signal);
-            signal.repopulate();
+            BlockSignal.of(event.getLocation(), event.getFacing());
         }
         return result;
     }
@@ -51,6 +46,6 @@ public class SignActionSignal extends SignAction {
     @Override
     public void destroy(SignActionEvent event) {
         super.destroy(event);
-        BlockSignal.of(event.getLocation(), event.getFacing()).ifPresent(BlockSignal.SIGNALS::remove);
+        BlockSignal.SIGNALS.remove(BlockSignal.of(event.getLocation(), event.getFacing()));
     }
 }

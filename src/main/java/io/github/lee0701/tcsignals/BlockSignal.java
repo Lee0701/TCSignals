@@ -7,12 +7,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
-import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
 
-public class BlockSignal implements ConfigurationSerializable {
+public class BlockSignal {
 
     private static BlockFace[] DIRECTIONS = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH};
 
@@ -112,22 +111,6 @@ public class BlockSignal implements ConfigurationSerializable {
 
     public BlockSection getSection() {
         return section;
-    }
-
-    @Override
-    public Map<String, Object> serialize() {
-        Map<String, Object> result = new HashMap<>();
-        result.put("sign-location", signLocation);
-        result.put("facing", facing.name());
-        return result;
-    }
-
-    public static BlockSignal deserialize(Map<String, Object> map) {
-        Location signLocation = (Location) map.get("sign-location");
-        BlockFace facing = BlockFace.valueOf((String) map.get("facing"));
-        BlockSignal signal = new BlockSignal(signLocation, facing);
-        BlockSignal.SIGNALS.add(signal);
-        return signal;
     }
 
 }

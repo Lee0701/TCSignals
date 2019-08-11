@@ -10,10 +10,6 @@ import java.io.IOException;
 
 public final class TCSignalsPlugin extends JavaPlugin {
 
-    static {
-        ConfigurationSerialization.registerClass(BlockSignal.class, "BlockSignal");
-    }
-
     public static TCSignalsPlugin getInstance() {
         return getPlugin(TCSignalsPlugin.class);
     }
@@ -22,18 +18,16 @@ public final class TCSignalsPlugin extends JavaPlugin {
     private YamlConfiguration dataConfiguration;
 
     private void reload() {
-//        dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
-//        if(dataConfiguration.isList("signals")) dataConfiguration.getList("signals");
+        dataConfiguration = YamlConfiguration.loadConfiguration(dataFile);
         BlockSignal.repopulateAll();
     }
 
     private void save() {
-//        try {
-//            dataConfiguration.set("signals", BlockSignal.SIGNALS);
-//            dataConfiguration.save(dataFile);
-//        } catch(IOException ex) {
-//            ex.printStackTrace();
-//        }
+        try {
+            dataConfiguration.save(dataFile);
+        } catch(IOException ex) {
+            ex.printStackTrace();
+        }
     }
 
     @Override

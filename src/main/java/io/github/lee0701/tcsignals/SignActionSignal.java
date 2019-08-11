@@ -13,7 +13,6 @@ import org.bukkit.block.BlockFace;
 public class SignActionSignal extends SignAction {
 
     public static String[] TYPES = new String[] {"signal"};
-    private static BlockFace[] DIRECTIONS = {BlockFace.EAST, BlockFace.WEST, BlockFace.SOUTH, BlockFace.NORTH};
 
     @Override
     public boolean match(SignActionEvent event) {
@@ -22,8 +21,12 @@ public class SignActionSignal extends SignAction {
 
     @Override
     public void execute(SignActionEvent event) {
-        BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing()).orElse(null);
-        if(signal == null) return;
+        BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing()).orElseGet(() -> {
+            BlockSignal newSignal = new BlockSignal(event.getLocation(), event.getFacing());
+            BlockSignal.SIGNALS.add(newSignal);
+            newSignal.repopulate();
+            return newSignal;
+        });
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
             event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection()));
 
@@ -36,7 +39,7 @@ public class SignActionSignal extends SignAction {
 
     @Override
     public boolean build(SignChangeActionEvent event) {
-        boolean result = handleBuild(event, Permission.BUILD_WAIT, "train signal", "control train flows");
+        boolean result = handleBuild(event, Permission.BUILD_WAIT, "train signal", "create block sections by combining multiple signs");
         if(result) {
             BlockSignal signal = new BlockSignal(event.getLocation(), event.getFacing());
             BlockSignal.SIGNALS.add(signal);

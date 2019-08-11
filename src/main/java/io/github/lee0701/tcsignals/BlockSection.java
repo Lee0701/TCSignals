@@ -3,9 +3,7 @@ package io.github.lee0701.tcsignals;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 public class BlockSection {
 
@@ -18,7 +16,6 @@ public class BlockSection {
     private MinecartGroup occupyingGroup;
 
     private List<BlockSignal> beginSignals = new ArrayList<>();
-
     private List<BlockSignal> endSignals = new ArrayList<>();
 
     public MinecartGroup getOccupyingGroup() {

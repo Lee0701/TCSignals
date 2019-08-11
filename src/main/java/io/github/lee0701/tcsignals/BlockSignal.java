@@ -4,26 +4,22 @@ import com.bergerkiller.bukkit.tc.cache.RailSignCache;
 import com.bergerkiller.bukkit.tc.events.SignActionEvent;
 import com.bergerkiller.bukkit.tc.rails.type.RailType;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
 import org.bukkit.configuration.serialization.ConfigurationSerializable;
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class BlockSignal implements ConfigurationSerializable {
 
-    public static List<BlockSignal> SIGNALS = new ArrayList<>();
+    public static List<BlockSignal> SIGNALS = new CopyOnWriteArrayList<>();
 
     public static Optional<BlockSignal> of(Location signLocation, BlockFace facing) {
         return SIGNALS.stream()
                 .filter(signal -> signal.signLocation.equals(signLocation) && signal.facing.equals(facing))
                 .findAny();
-    }
-
-    public static BlockSignal create(Location signLocation, BlockFace facing) {
-        BlockSignal signal = new BlockSignal(signLocation, facing);
-        SIGNALS.add(signal);
-        return signal;
     }
 
     public static void repopulateAll() {
@@ -49,16 +45,19 @@ public class BlockSignal implements ConfigurationSerializable {
         this.section.getBeginSignals().add(this);
         BlockSection.SECTIONS.add(this.section);
 
+        if(signLocation.getBlock().getType() != Material.SIGN
+                && signLocation.getBlock().getType() != Material.WALL_SIGN) {
+            BlockSignal.SIGNALS.remove(this);
+            return;
+        }
+
         Block rails = RailSignCache.getRailsFromSign(signLocation.getBlock());
-        BlockFace direction = this.facing;
         if(rails == null) return;
 
-        repopulate(rails.getLocation(), direction.getOppositeFace());
+        repopulate(rails.getLocation(), this.facing.getOppositeFace());
 
-        System.out.println("Begin:");
-        for(BlockSignal signal : section.getBeginSignals()) System.out.println(" - " + signal.getSignLocation() + ", " + signal.getFacing());
-        System.out.println("End:");
-        for(BlockSignal signal : section.getEndSignals()) System.out.println(" - " + signal.getSignLocation() + ", " + signal.getFacing());
+        System.out.println(this.getSignLocation() + ", " + this.getFacing());
+
     }
 
     private void repopulate(Location blockLocation, BlockFace currentDirection) {
@@ -117,7 +116,8 @@ public class BlockSignal implements ConfigurationSerializable {
     public static BlockSignal deserialize(Map<String, Object> map) {
         Location signLocation = (Location) map.get("sign-location");
         BlockFace facing = BlockFace.valueOf((String) map.get("facing"));
-        BlockSignal signal = BlockSignal.create(signLocation, facing);
+        BlockSignal signal = new BlockSignal(signLocation, facing);
+        BlockSignal.SIGNALS.add(signal);
         return signal;
     }
 

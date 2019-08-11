@@ -25,19 +25,11 @@ public class SignActionSignal extends SignAction {
         BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing()).orElse(null);
         if(signal == null) return;
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
-            MinecartGroup group = event.getGroup();
-            MinecartGroup occupying = signal.getSection().getOccupyingGroup();
-            if(occupying != null && occupying.isValid()) {
-                group.getActions().addAction(new GroupActionWaitSignal(signal.getSection()));
-            } else {
-                signal.getSection().setOccupyingGroup(group);
-            }
+            event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection()));
 
         } if(event.isAction(SignActionType.GROUP_LEAVE) && event.hasGroup()) {
-            MinecartGroup group = event.getGroup();
-            BlockSection current = BlockSection.get(group);
             BlockSection.SECTIONS.forEach(section -> {
-                if(section != current && section.getOccupyingGroup() == group) section.setOccupyingGroup(null);
+                if(section != signal.getSection() && section.getOccupyingGroup() == event.getGroup()) section.setOccupyingGroup(null);
             });
         }
     }

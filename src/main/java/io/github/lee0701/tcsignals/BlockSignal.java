@@ -12,7 +12,7 @@ import java.util.*;
 
 public class BlockSignal implements ConfigurationSerializable {
 
-    private static List<BlockSignal> SIGNALS = new ArrayList<>();
+    public static List<BlockSignal> SIGNALS = new ArrayList<>();
 
     public static Optional<BlockSignal> of(Location signLocation, BlockFace facing) {
         return SIGNALS.stream()
@@ -21,17 +21,13 @@ public class BlockSignal implements ConfigurationSerializable {
     }
 
     public static BlockSignal create(Location signLocation, BlockFace facing) {
-        return SIGNALS.stream()
-                .filter(signal -> signal.signLocation.equals(signLocation) && signal.facing.equals(facing))
-                .findAny().orElse(new BlockSignal(signLocation, facing));
-    }
-
-    public static void add(BlockSignal signal) {
+        BlockSignal signal = new BlockSignal(signLocation, facing);
         SIGNALS.add(signal);
+        return signal;
     }
 
-    public static void remove(BlockSignal signal) {
-        SIGNALS.remove(signal);
+    public static void repopulateAll() {
+        SIGNALS.forEach(BlockSignal::repopulate);
     }
 
     private final Location signLocation;
@@ -48,10 +44,10 @@ public class BlockSignal implements ConfigurationSerializable {
     }
 
     public void repopulate() {
-        BlockSection.remove(this.section);
+        BlockSection.SECTIONS.remove(this.section);
         this.section = new BlockSection();
         this.section.getBeginSignals().add(this);
-        BlockSection.add(this.section);
+        BlockSection.SECTIONS.add(this.section);
 
         Block rails = RailSignCache.getRailsFromSign(signLocation.getBlock());
         BlockFace direction = this.facing;
@@ -80,12 +76,12 @@ public class BlockSignal implements ConfigurationSerializable {
             starting.ifPresent(startingSignal -> {
                 if(!section.getBeginSignals().contains(startingSignal)) {
                     section.getBeginSignals().add(startingSignal);
-                    BlockSection.remove(startingSignal.section);
+                    BlockSection.SECTIONS.remove(startingSignal.section);
                     startingSignal.section = this.section;
                 }
             });
 
-            if(ending.isPresent()) return;
+            if(ending.isPresent() || starting.isPresent()) return;
 
         }
         for(BlockFace direction : DIRECTIONS) {
@@ -106,19 +102,22 @@ public class BlockSignal implements ConfigurationSerializable {
         return facing;
     }
 
+    public BlockSection getSection() {
+        return section;
+    }
+
     @Override
     public Map<String, Object> serialize() {
         Map<String, Object> result = new HashMap<>();
         result.put("sign-location", signLocation);
-        result.put("facing", facing);
+        result.put("facing", facing.name());
         return result;
     }
 
     public static BlockSignal deserialize(Map<String, Object> map) {
         Location signLocation = (Location) map.get("sign-location");
-        BlockFace facing = (BlockFace) map.get("facing");
+        BlockFace facing = BlockFace.valueOf((String) map.get("facing"));
         BlockSignal signal = BlockSignal.create(signLocation, facing);
-        signal.repopulate();
         return signal;
     }
 

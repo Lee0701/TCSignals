@@ -3,18 +3,16 @@ package io.github.lee0701.tcsignals;
 import com.bergerkiller.bukkit.tc.controller.MinecartGroup;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class BlockSection {
 
-    private static List<BlockSection> SECTIONS = new ArrayList<>();
+    public static List<BlockSection> SECTIONS = new ArrayList<>();
 
-    public static void add(BlockSection section) {
-        SECTIONS.add(section);
-    }
-
-    public static void remove(BlockSection section) {
-        SECTIONS.remove(section);
+    public static BlockSection get(MinecartGroup occupyingGroup) {
+        return SECTIONS.stream().filter(section -> section.occupyingGroup == occupyingGroup).findAny().orElse(null);
     }
 
     private MinecartGroup occupyingGroup;

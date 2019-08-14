@@ -20,12 +20,8 @@ public class SignActionSignal extends SignAction {
     public void execute(SignActionEvent event) {
         BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing());
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
-            if(signal.getSection().getOccupyingGroup() != null) {
-                event.getGroup().getActions().clear();
-                event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection(), ParseUtil.parseDouble(event.getLine(3), event.getGroup().getAverageForce())));
-            } else {
-                signal.getSection().setOccupyingGroup(event.getGroup());
-            }
+            event.getGroup().getActions().clear();
+            event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection(), ParseUtil.parseDouble(event.getLine(3), event.getGroup().getAverageForce())));
 
         } if(event.isAction(SignActionType.GROUP_LEAVE) && event.hasGroup()) {
             BlockSection.SECTIONS.stream()

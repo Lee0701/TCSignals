@@ -103,6 +103,11 @@ public class BlockSignal {
         return RailType.getType(block) != RailType.NONE;
     }
 
+    public void setLever(boolean leverState) {
+        SignActionEvent event = new SignActionEvent(this.getSignLocation().getBlock());
+        event.setLevers(leverState);
+    }
+
     public Location getSignLocation() {
         return signLocation;
     }

@@ -20,13 +20,18 @@ public class SignActionSignal extends SignAction {
     public void execute(SignActionEvent event) {
         BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing());
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
+            Double launchForce = ParseUtil.parseDouble(event.getLine(2), event.getGroup().getAverageForce());
             event.getGroup().getActions().clear();
-            event.getGroup().getActions().addAction(new GroupActionWaitSignal(signal.getSection(), ParseUtil.parseDouble(event.getLine(3), event.getGroup().getAverageForce())));
+            event.getGroup().getActions().addAction(new GroupActionWaitSignal(
+                    signal.getSection(),
+                    launchForce,
+                    ParseUtil.parseDouble(event.getLine(3), launchForce)));
 
         } if(event.isAction(SignActionType.GROUP_LEAVE) && event.hasGroup()) {
             BlockSection.SECTIONS.stream()
                     .filter(section -> section != signal.getSection() && section.getOccupyingGroup() == event.getGroup())
-                    .forEach(section -> section.setOccupyingGroup(null));
+                    .forEach(BlockSection::unoccupy);
+
         }
     }
 

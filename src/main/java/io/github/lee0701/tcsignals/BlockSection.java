@@ -18,11 +18,21 @@ public class BlockSection {
     private List<BlockSignal> beginSignals = new ArrayList<>();
     private List<BlockSignal> endSignals = new ArrayList<>();
 
+    public void occupy(MinecartGroup occupyingGroup) {
+        setOccupyingGroup(occupyingGroup);
+        this.beginSignals.forEach(signal -> signal.setLever(false));
+    }
+
+    public void unoccupy() {
+        setOccupyingGroup(null);
+        this.beginSignals.forEach(signal -> signal.setLever(true));
+    }
+
     public MinecartGroup getOccupyingGroup() {
         return occupyingGroup;
     }
 
-    public void setOccupyingGroup(MinecartGroup occupyingGroup) {
+    protected void setOccupyingGroup(MinecartGroup occupyingGroup) {
         this.occupyingGroup = occupyingGroup;
     }
 

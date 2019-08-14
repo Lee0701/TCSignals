@@ -36,7 +36,7 @@ public class BlockSignal {
     private final Location signLocation;
     private final BlockFace facing;
 
-    // section starting with this sign.
+    // A section starting with this sign.
     private BlockSection section;
 
     public BlockSignal(Location signLocation, BlockFace facing) {
@@ -91,9 +91,11 @@ public class BlockSignal {
             }
 
         }
-        for(BlockFace direction : DIRECTIONS) {
-            if(direction.equals(currentDirection.getOppositeFace())) continue;
-            repopulate(blockLocation.clone().add(direction.getModX(), direction.getModY(), direction.getModZ()), direction);
+        for(int y = -1 ; y <= +1 ; y++) {
+            for(BlockFace direction : DIRECTIONS) {
+                if(direction.equals(currentDirection.getOppositeFace())) continue;
+                repopulate(blockLocation.clone().add(direction.getModX(), y, direction.getModZ()), direction);
+            }
         }
     }
 

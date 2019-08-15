@@ -9,11 +9,13 @@ public class GroupActionWaitSignal extends GroupActionWaitForever {
     private final BlockSection waitingFor;
     private Double launchVelocity;
     private Double slowVelocity;
+    private Double launchDistance;
 
-    public GroupActionWaitSignal(BlockSection waitingFor, Double launchVelocity, Double slowVelocity) {
+    public GroupActionWaitSignal(BlockSection waitingFor, Double launchVelocity, Double slowVelocity, Double launchDistance) {
         this.waitingFor = waitingFor;
         this.launchVelocity = launchVelocity;
         this.slowVelocity = slowVelocity;
+        this.launchDistance = launchDistance;
     }
 
     @Override
@@ -36,7 +38,7 @@ public class GroupActionWaitSignal extends GroupActionWaitForever {
             }
             // The track is clear, occupy the section and launch.
             this.waitingFor.occupy(getGroup());
-            getGroup().head().getActions().addActionLaunch(2.0, launchVelocity);
+            getGroup().head().getActions().addActionLaunch(launchDistance, launchVelocity);
             return true;
         }
     }

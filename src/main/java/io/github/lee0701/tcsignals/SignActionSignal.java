@@ -2,6 +2,7 @@ package io.github.lee0701.tcsignals;
 
 import com.bergerkiller.bukkit.common.utils.ParseUtil;
 import com.bergerkiller.bukkit.tc.Permission;
+import com.bergerkiller.bukkit.tc.Util;
 import com.bergerkiller.bukkit.tc.events.SignActionEvent;
 import com.bergerkiller.bukkit.tc.events.SignChangeActionEvent;
 import com.bergerkiller.bukkit.tc.signactions.SignAction;
@@ -20,16 +21,19 @@ public class SignActionSignal extends SignAction {
     public void execute(SignActionEvent event) {
         BlockSignal signal = BlockSignal.of(event.getLocation(), event.getFacing());
         if(event.isAction(SignActionType.GROUP_ENTER) && event.hasGroup()) {
-            Double launchForce = ParseUtil.parseDouble(event.getLine(2), event.getGroup().getAverageForce());
+            String[] forces = event.getLine(2).split("\\s");
+            Double launchForce = null;
+            Double slowdownForce = null;
+            if(forces.length >= 1) launchForce = ParseUtil.parseDouble(forces[0], event.getGroup().getAverageForce());
+            if(forces.length >= 2) slowdownForce = ParseUtil.parseDouble(forces[1], launchForce);
+            double launchDistance = ParseUtil.parseDouble(event.getLine(3), 2.0);
             event.getGroup().getActions().clear();
-            event.getGroup().getActions().addAction(new GroupActionWaitSignal(
-                    signal.getSection(),
-                    launchForce,
-                    ParseUtil.parseDouble(event.getLine(3), launchForce)));
+            event.getGroup().getActions().addAction(
+                    new GroupActionWaitSignal(signal.getSection(), launchForce, slowdownForce, launchDistance));
 
         } if(event.isAction(SignActionType.GROUP_LEAVE) && event.hasGroup()) {
             BlockSection.SECTIONS.stream()
-                    .filter(section -> section != signal.getSection() && section.getOccupyingGroup() == event.getGroup())
+                    .filter(section -> section.getEndSignals().contains(signal) && section.getOccupyingGroup() == event.getGroup())
                     .forEach(BlockSection::unoccupy);
 
         }
